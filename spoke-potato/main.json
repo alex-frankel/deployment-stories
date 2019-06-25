@@ -1,0 +1,38 @@
+{
+    // main.json is the main file where the deployment starts
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {},
+    "variables": {
+        // uri function strips out name of file at the end
+        "baseUri": "[uri(deployment().properties.templateLink.uri, 'nestedtemplates/')]" 
+    },
+    "resources": [
+        {
+            // using linked templates to kick off child deployments (separate files)
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "rbac",
+            "properties": {
+                "template-uri": "[concat(variables('baseUri'), 'rbac.json')]" // file 1
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "policy",
+            "properties": {
+                "template-uri": "[concat(variables('baseUri'), 'policy.json')]" // file 2
+            }
+        },
+        {
+            "type": "Microsoft.Resources/deployments",
+            "apiVersion": "2018-05-01",
+            "name": "vnet",
+            "properties": {
+                "template-uri": "[concat(variables('baseUri'), 'vnet.json')]" // file 3
+            }
+        }
+    ],
+    "outputs": {}
+}
