@@ -14,6 +14,8 @@
             "apiVersion": "2018-05-01",
             "name": "rbac",
             "properties": {
+                // how can we make a change here to *really* support relative paths, 
+                // like most development langauges (including TF)
                 "template-uri": "[concat(variables('baseUri'), 'rbac.json')]" // file 1
             }
         },
