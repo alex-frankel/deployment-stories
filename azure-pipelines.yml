@@ -9,11 +9,40 @@ trigger:
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+ - name: spnName
+   value: 'pipelines-runner'
+ - name: blueprintName
+   value: 101-Boilerplate
+ - name: subscriptionId
+   value: 'e93d3ee6-fac1-412f-92d6-bfb379e81af2'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+steps:
+
+- task: CreateBlueprint@1
+  displayName: 'Push Yum-ISO-Foundations blueprint to Azure'
+  inputs:
+    azureSubscription: '$(spnName)' # this is the service connection
+    BlueprintName: '$(blueprintName)'
+    BlueprintPath: '.\samples\$(blueprintName)'
+    PublishBlueprint: true
+
+- task: AssignBlueprint@1
+  displayName: 'Assign Yum-ISO-Foundations blueprint to test environment'
+  inputs:
+    azureSubscription: '$(spnName)'
+    AssignmentName: 'pla-$(blueprintName)' # pla == PipeLinesAssignment
+    BlueprintName: '$(blueprintName)'
+    ParametersFile: '.\samples\$(blueprintName)\assign.json'
+    SubscriptionID: '$(subscriptionId)'
+    Wait: true # waits for assignment to succeed or fail
+    # version not specified because it defaults to latest published, but could include it
+
+# clean subscription before next test
+- task: AzurePowerShell@4
+  inputs:
+    azureSubscription: 'pipelines-runner'
+    ScriptType: 'FilePath'
+    ScriptPath: '.\clean-subscription.ps1'
+    FailOnStandardError: true
+    azurePowerShellVersion: 'LatestVersion'
